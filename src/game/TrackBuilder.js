@@ -18,7 +18,7 @@ export class TrackBuilder {
   typeFor(idx) {
     const z0 = idx * SEGMENT_LEN;
     const z1 = z0 + SEGMENT_LEN;
-    const isStation = STATIONS.some((s) => z1 > s.pos - 80 && z0 < s.pos + 10);
+    const isStation = STATIONS.some((s) => z1 > s.pos - 80 && z0 < s.pos);
     return isStation ? 'station' : 'tunnel';
   }
 

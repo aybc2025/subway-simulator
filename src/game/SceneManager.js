@@ -49,13 +49,15 @@ export class SceneManager {
 
     this.track = new TrackBuilder(this.scene);
 
-    // Spawn traffic lights at fixed positions, randomly red or green each run
+    // Spawn traffic lights at fixed positions; each cycles independently.
     this.trafficLights = TRAFFIC_LIGHT_POSITIONS.map(pos => {
+      const { group, setRed } = createTrafficLight();
       const isRed = Math.random() < 0.5;
-      const obj = createTrafficLight(isRed);
-      obj.position.set(-2.15, 0, pos); // left wall, facing the approaching train
-      this.scene.add(obj);
-      return { pos, isRed };
+      const cycleTime = 8 + Math.random() * 12; // 8–20 s per state
+      setRed(isRed);
+      group.position.set(-2.15, 0, pos);
+      this.scene.add(group);
+      return { pos, isRed, setRed, timer: Math.random() * cycleTime, cycleTime };
     });
 
     this.train = createTrainModel();
@@ -84,6 +86,16 @@ export class SceneManager {
 
   update(dt) {
     const p = this.physics;
+
+    // Cycle each traffic light on its own timer
+    this.trafficLights.forEach(l => {
+      l.timer -= dt;
+      if (l.timer <= 0) {
+        l.isRed = !l.isRed;
+        l.setRed(l.isRed);
+        l.timer = l.cycleTime;
+      }
+    });
 
     // Speed limit: enforced whenever the train is within TRAFFIC_LIGHT_ZONE of a red light
     const inRedZone = this.trafficLights.some(
@@ -131,7 +143,7 @@ export class SceneManager {
     // Distance to the next station's stop marker
     const st = STATIONS[this.nextIdx];
     const rawDist = this.phase === 'driving' && st ? Math.max(0, st.pos - p.pos) : null;
-    const distToStop = rawDist !== null && rawDist < 400 ? Math.round(rawDist) : null;
+    const distToStop = rawDist !== null && rawDist < 600 ? Math.round(rawDist) : null;
 
     this.track.update(p.pos);
     this.placeLights(p.pos);

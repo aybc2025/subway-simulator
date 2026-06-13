@@ -25,7 +25,8 @@ export default function GameScreen() {
     };
 
     const manager = new SceneManager(canvasRef.current, {
-      onTick: (kmh, ratio) => useGameStore.getState().setTick(Math.round(kmh), ratio),
+      onTick: (kmh, ratio, maxSpeedKmh, distToStop, upcomingLight) =>
+        useGameStore.getState().setTick(Math.round(kmh), ratio, maxSpeedKmh, distToStop, upcomingLight),
       onArrive: (idx, coins, err) => {
         const st = useGameStore.getState();
         st.addRunCoins(coins);

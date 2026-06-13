@@ -151,8 +151,9 @@ export function createStationSegment() {
   return g;
 }
 
-// Traffic signal mounted on the left tunnel wall. isRed = true → red lit, green dim.
-export function createTrafficLight(isRed) {
+// Traffic signal mounted on the left tunnel wall.
+// Returns { group, setRed(bool) } so the caller can cycle the state at runtime.
+export function createTrafficLight() {
   const g = new THREE.Group();
 
   const poleMat = new THREE.MeshLambertMaterial({ color: 0x252525 });
@@ -161,29 +162,32 @@ export function createTrafficLight(isRed) {
   const housingMat = new THREE.MeshLambertMaterial({ color: 0x181818 });
   g.add(box(0.34, 0.82, 0.24, housingMat, 0, 2.78, 0));
 
-  // red bulb (top) — faces −z so the approaching train sees it
-  const redBulb = new THREE.Mesh(
-    new THREE.CircleGeometry(0.11, 14),
-    new THREE.MeshBasicMaterial({ color: isRed ? 0xff2020 : 0x3a0808 })
-  );
-  redBulb.position.set(0, 3.0, 0.13);
+  // Bulbs sit on the FRONT face of the housing (z = −0.13) and face −z toward the driver.
+  const redMat = new THREE.MeshBasicMaterial({ color: 0x3a0808 });
+  const redBulb = new THREE.Mesh(new THREE.CircleGeometry(0.11, 14), redMat);
+  redBulb.position.set(0, 3.0, -0.13);
   redBulb.rotation.y = Math.PI;
   g.add(redBulb);
 
-  // green bulb (bottom)
-  const greenBulb = new THREE.Mesh(
-    new THREE.CircleGeometry(0.11, 14),
-    new THREE.MeshBasicMaterial({ color: isRed ? 0x083a08 : 0x22ee44 })
-  );
-  greenBulb.position.set(0, 2.56, 0.13);
+  const greenMat = new THREE.MeshBasicMaterial({ color: 0x22ee44 });
+  const greenBulb = new THREE.Mesh(new THREE.CircleGeometry(0.11, 14), greenMat);
+  greenBulb.position.set(0, 2.56, -0.13);
   greenBulb.rotation.y = Math.PI;
   g.add(greenBulb);
 
-  const glow = new THREE.PointLight(isRed ? 0xff2020 : 0x22ee44, 22, 20, 2);
-  glow.position.set(0, isRed ? 3.0 : 2.56, 0.3);
+  // Glow light positioned in front of the housing so it illuminates the approach.
+  const glow = new THREE.PointLight(0x22ee44, 22, 20, 2);
+  glow.position.set(0, 2.56, -0.2);
   g.add(glow);
 
-  return g;
+  function setRed(isRed) {
+    redMat.color.set(isRed ? 0xff2020 : 0x3a0808);
+    greenMat.color.set(isRed ? 0x083a08 : 0x22ee44);
+    glow.color.set(isRed ? 0xff2020 : 0x22ee44);
+    glow.position.y = isRed ? 3.0 : 2.56;
+  }
+
+  return { group: g, setRed };
 }
 
 // Sign + chevron board placed exactly at a station's stop position.
