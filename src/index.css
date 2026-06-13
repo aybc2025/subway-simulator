@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #0b0e13;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.hud-chip {
+  @apply flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-sm font-bold backdrop-blur-sm;
+}
+
+.side-btn {
+  @apply flex h-11 w-11 items-center justify-center rounded-xl bg-sky-600/85 text-white shadow-lg active:scale-95 transition-transform;
+}
+
+.lever-track {
+  background: linear-gradient(90deg, #6d7178, #c8ccd2 30%, #93979e 60%, #5a5e66);
+  box-shadow: inset 0 0 6px rgba(0,0,0,.6), 0 4px 10px rgba(0,0,0,.5);
+}
+
+.lever-handle {
+  background: linear-gradient(180deg, #e8eaee, #9da1a8 45%, #5f636b);
+  box-shadow: 0 3px 8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
+}
+
+.brake-btn {
+  background: radial-gradient(circle at 35% 30%, #3a3f47, #15171c 70%);
+  box-shadow: 0 5px 14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.15);
+}
+.brake-btn.active {
+  box-shadow: 0 0 24px rgba(220,60,60,.8), inset 0 0 18px rgba(220,60,60,.5);
+}
+
+@media (orientation: landscape) {
+  .rotate-overlay { display: none; }
+}
+
+@keyframes hazard-slide {
+  from { background-position: 0 0; }
+  to { background-position: 56px 0; }
+}
+.hazard-stripe {
+  height: 10px;
+  background: repeating-linear-gradient(45deg, #f5c518 0 14px, #181510 14px 28px);
+  animation: hazard-slide 2.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hazard-stripe { animation: none; }
+}
