@@ -151,6 +151,41 @@ export function createStationSegment() {
   return g;
 }
 
+// Traffic signal mounted on the left tunnel wall. isRed = true → red lit, green dim.
+export function createTrafficLight(isRed) {
+  const g = new THREE.Group();
+
+  const poleMat = new THREE.MeshLambertMaterial({ color: 0x252525 });
+  g.add(box(0.08, 2.4, 0.08, poleMat, 0, 1.2, 0));
+
+  const housingMat = new THREE.MeshLambertMaterial({ color: 0x181818 });
+  g.add(box(0.34, 0.82, 0.24, housingMat, 0, 2.78, 0));
+
+  // red bulb (top) — faces −z so the approaching train sees it
+  const redBulb = new THREE.Mesh(
+    new THREE.CircleGeometry(0.11, 14),
+    new THREE.MeshBasicMaterial({ color: isRed ? 0xff2020 : 0x3a0808 })
+  );
+  redBulb.position.set(0, 3.0, 0.13);
+  redBulb.rotation.y = Math.PI;
+  g.add(redBulb);
+
+  // green bulb (bottom)
+  const greenBulb = new THREE.Mesh(
+    new THREE.CircleGeometry(0.11, 14),
+    new THREE.MeshBasicMaterial({ color: isRed ? 0x083a08 : 0x22ee44 })
+  );
+  greenBulb.position.set(0, 2.56, 0.13);
+  greenBulb.rotation.y = Math.PI;
+  g.add(greenBulb);
+
+  const glow = new THREE.PointLight(isRed ? 0xff2020 : 0x22ee44, 22, 20, 2);
+  glow.position.set(0, isRed ? 3.0 : 2.56, 0.3);
+  g.add(glow);
+
+  return g;
+}
+
 // Sign + chevron board placed exactly at a station's stop position.
 export function createStopMarker(name) {
   const m = mats();

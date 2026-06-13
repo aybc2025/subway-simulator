@@ -11,6 +11,9 @@ export default function HUD({ onLever, onEBrake }) {
   const runCoins = useGameStore((s) => s.runCoins);
   const gems = useGameStore((s) => s.gems);
   const speedKmh = useGameStore((s) => s.speedKmh);
+  const maxSpeedKmh = useGameStore((s) => s.maxSpeedKmh);
+  const distToStop = useGameStore((s) => s.distToStop);
+  const upcomingLight = useGameStore((s) => s.upcomingLight);
   const banner = useGameStore((s) => s.banner);
   const paused = useGameStore((s) => s.paused);
   const setPaused = useGameStore((s) => s.setPaused);
@@ -32,9 +35,35 @@ export default function HUD({ onLever, onEBrake }) {
 
         <div className="flex-1 px-2 pt-1">
           <RouteProgress />
-          <p className="mt-1 text-center text-xl font-extrabold tracking-wide drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]">
-            SPEED: {speedKmh}
-          </p>
+
+          {/* speed + max speed */}
+          <div className="mt-1 flex items-baseline justify-center gap-2 drop-shadow-[0_2px_2px_rgba(0,0,0,0.9)]">
+            <span className="text-xl font-extrabold tracking-wide">{speedKmh}</span>
+            <span className="text-sm opacity-60">km/h</span>
+            <span className={`text-sm font-bold ${maxSpeedKmh < 80 ? 'text-red-400' : 'text-white/50'}`}>
+              / MAX {maxSpeedKmh}
+            </span>
+          </div>
+
+          {/* distance to next stop */}
+          {distToStop !== null && (
+            <p className="text-center text-xs font-bold text-yellow-300 drop-shadow">
+              ▼ {distToStop} m to stop
+            </p>
+          )}
+
+          {/* upcoming traffic light */}
+          {upcomingLight && (
+            <div className="mt-0.5 flex justify-center">
+              <span className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs font-bold ${
+                upcomingLight.isRed ? 'bg-red-900/80 text-red-200' : 'bg-green-900/80 text-green-200'
+              }`}>
+                <span className={`inline-block h-2 w-2 rounded-full ${upcomingLight.isRed ? 'bg-red-400' : 'bg-green-400'}`} />
+                {upcomingLight.isRed ? `LIMIT ${upcomingLight.speedLimit} km/h` : 'SIGNAL CLEAR'}
+                {' · '}{upcomingLight.dist} m
+              </span>
+            </div>
+          )}
         </div>
 
         <button

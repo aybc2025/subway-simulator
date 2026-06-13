@@ -21,3 +21,7 @@ export const STATIONS = [
 export const ROUTE_END = 2600;
 
 export const COINS = { perfect: 30, good: 20, ok: 10, base: 5, missed: -10 };
+
+export const TRAFFIC_LIGHT_POSITIONS = [195, 680, 1220, 1740, 2265];
+export const TRAFFIC_LIGHT_SPEED_KMH = 35;
+export const TRAFFIC_LIGHT_ZONE = 60; // metres before/through the light where the limit applies

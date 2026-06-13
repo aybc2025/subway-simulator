@@ -22,6 +22,9 @@ export const useGameStore = create((set, get) => ({
   banner: null,            // { kind: 'info'|'good'|'warn', text }
   camera: 'cab',           // 'cab' | 'chase'
   headlights: true,
+  maxSpeedKmh: 80,
+  distToStop: null,        // metres to next stop sign, or null when not approaching
+  upcomingLight: null,     // { isRed, dist, speedLimit } or null
 
   startGame: () =>
     set({
@@ -33,11 +36,15 @@ export const useGameStore = create((set, get) => ({
       nextStation: 0,
       served: [],
       missed: [],
-      banner: null
+      banner: null,
+      maxSpeedKmh: 80,
+      distToStop: null,
+      upcomingLight: null
     }),
 
   setPaused: (paused) => set({ paused }),
-  setTick: (speedKmh, posRatio) => set({ speedKmh, posRatio }),
+  setTick: (speedKmh, posRatio, maxSpeedKmh, distToStop, upcomingLight) =>
+    set({ speedKmh, posRatio, maxSpeedKmh, distToStop, upcomingLight }),
   setBanner: (banner) => set({ banner }),
   setCamera: (camera) => set({ camera }),
   toggleHeadlights: () => set((s) => ({ headlights: !s.headlights })),

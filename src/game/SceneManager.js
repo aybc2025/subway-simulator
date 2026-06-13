@@ -3,8 +3,10 @@ import { TrackBuilder } from './TrackBuilder';
 import { TrainPhysics } from './TrainPhysics';
 import { createTrainModel } from './TrainModel';
 import { setRumble, chime } from './audio';
+import { createTrafficLight } from './segmentMeshes';
 import {
-  STATIONS, ROUTE_END, STOP_TOLERANCE, DWELL_TIME, COINS, MAX_SPEED_KMH
+  STATIONS, ROUTE_END, STOP_TOLERANCE, DWELL_TIME, COINS, MAX_SPEED_KMH,
+  TRAFFIC_LIGHT_POSITIONS, TRAFFIC_LIGHT_SPEED_KMH, TRAFFIC_LIGHT_ZONE
 } from '../config/constants';
 
 const MAX_MS = MAX_SPEED_KMH / 3.6;
@@ -46,6 +48,16 @@ export class SceneManager {
     }
 
     this.track = new TrackBuilder(this.scene);
+
+    // Spawn traffic lights at fixed positions, randomly red or green each run
+    this.trafficLights = TRAFFIC_LIGHT_POSITIONS.map(pos => {
+      const isRed = Math.random() < 0.5;
+      const obj = createTrafficLight(isRed);
+      obj.position.set(-2.15, 0, pos); // left wall, facing the approaching train
+      this.scene.add(obj);
+      return { pos, isRed };
+    });
+
     this.train = createTrainModel();
     this.scene.add(this.train);
 
@@ -72,6 +84,13 @@ export class SceneManager {
 
   update(dt) {
     const p = this.physics;
+
+    // Speed limit: enforced whenever the train is within TRAFFIC_LIGHT_ZONE of a red light
+    const inRedZone = this.trafficLights.some(
+      l => l.isRed && l.pos - p.pos > -15 && l.pos - p.pos < TRAFFIC_LIGHT_ZONE
+    );
+    p.maxSpeed = inRedZone ? TRAFFIC_LIGHT_SPEED_KMH / 3.6 : MAX_MS;
+    const speedLimitKmh = inRedZone ? TRAFFIC_LIGHT_SPEED_KMH : MAX_SPEED_KMH;
 
     if (this.phase === 'dwell') {
       p.speed = 0;
@@ -101,6 +120,19 @@ export class SceneManager {
       this.checkStations();
     }
 
+    // Nearest upcoming traffic light within 400 m
+    const nextLight = this.trafficLights
+      .filter(l => l.pos > p.pos && l.pos - p.pos <= 400)
+      .sort((a, b) => a.pos - b.pos)[0] ?? null;
+    const upcomingLight = nextLight
+      ? { isRed: nextLight.isRed, dist: Math.round(nextLight.pos - p.pos), speedLimit: nextLight.isRed ? TRAFFIC_LIGHT_SPEED_KMH : MAX_SPEED_KMH }
+      : null;
+
+    // Distance to the next station's stop marker
+    const st = STATIONS[this.nextIdx];
+    const rawDist = this.phase === 'driving' && st ? Math.max(0, st.pos - p.pos) : null;
+    const distToStop = rawDist !== null && rawDist < 400 ? Math.round(rawDist) : null;
+
     this.track.update(p.pos);
     this.placeLights(p.pos);
     this.placeCamera(p.pos);
@@ -109,7 +141,7 @@ export class SceneManager {
     this.tickAcc += dt;
     if (this.tickAcc >= 0.1) {
       this.tickAcc = 0;
-      this.events.onTick(p.kmh, p.pos / ROUTE_END);
+      this.events.onTick(p.kmh, p.pos / ROUTE_END, speedLimitKmh, distToStop, upcomingLight);
     }
   }
 
